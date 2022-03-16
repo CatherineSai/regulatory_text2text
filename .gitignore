@@ -1,3 +1,7 @@
-.text2text_venv/ 
+.text2text_python38_venv/ 
 .vscode/
 input/
+results/
+src/intermediate_results/
+src/__pycache__/
+src/classes/__pycache__/

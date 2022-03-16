@@ -11,17 +11,17 @@ from classes.k_means_bert import *
 from classes.constraint_existence_check import *
 from classes.in_depth_comparison import *
 from classes.phrase_similarity_computation import *
-from classes.s_bert_sentence_pairs import *
+from classes.legal_s_bert_sentence_pairs import *
 from classes.deviation_counter import *
 
 ## Application Selection ########################################START
 direct_s_bert = True #if False --> approach calculated with topic model, kmeans and word2vev 
 iso = False #if False --> running with gdpr setup
 #thresholds:
-gamma_s_bert = 0.67 #0.67 #used for sentence mapping 
+gamma_s_bert = 0.1 #0.67 #used for sentence mapping 
 gamma_grouping = 0.9 #used for sentence mapping in k-means & topic Model approach
 gamma_one = 0.3 #used for subject phrase mapping
-gamma_two = 0.32 #used for verb phrase mapping
+gamma_two = 0.2 #used for verb phrase mapping
 gamma_three = 0.3 #used for object phrase mapping
 ################################################################# END
 
@@ -81,15 +81,9 @@ else:
   reg_relevant_sentences = tc.get_relevant_sentences(reg_para_anaphora_resolved)
   rea_relevant_sentences = tc.get_relevant_sentences(rea_para_anaphora_resolved)
 
-'''
-  import pandas as pd
-  pd.DataFrame(reg_relevant_sentences).to_excel(join(INTERMEDIATE_DIRECTORY, "gdpr_reg_relevant_sentences.xlsx"))  
-  pd.DataFrame(rea_relevant_sentences).to_excel(join(INTERMEDIATE_DIRECTORY, "gdpr_rea_relevant_sentences.xlsx"))  
-'''
-
 if direct_s_bert:
   # S-BERT Finding Sentance Pairs 
-  sbsp = S_Bert_Sentence_Pairs(gamma_s_bert)
+  sbsp = Legal_S_Bert_Sentence_Pairs(gamma_s_bert)
   df_bert_sent_pairs = sbsp.get_bert_sim_sent_pairs(reg_relevant_sentences, rea_relevant_sentences)
   df_bert_sent_pairs.to_excel(join(INTERMEDIATE_DIRECTORY, "df_bert_sent_pairs.xlsx"))  
   count_unmapped_reg_sent = sbsp.get_unmapped_reg_sentences(df_bert_sent_pairs, reg_relevant_sentences)
@@ -137,4 +131,3 @@ else:
   similarity_kmeans_bert_constraint_phrases = psc.get_phrase_similarities(kmeans_bert_constraint_phrases)
   similarity_topic_model_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_topic_model_constraint_phrases.xlsx"))  
   similarity_kmeans_bert_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_kmeans_bert_constraint_phrases.xlsx")) 
-

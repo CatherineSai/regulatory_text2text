@@ -11,7 +11,7 @@ class Text_Cleaning:
     self.controller_words = controller_words
   
   def find_paragraph_references(self):
-    '''Matcher finding mentions like "article 5", "paragraphs 3 and 7", "No 1338/2008" '''
+    '''Matcher finding mentions like "paragraphs 3 and 7" '''
     paragraph_list = []
     # Import the Matcher and initialize it with the shared vocabulary
     matcher = Matcher(self.nlp.vocab)
@@ -35,7 +35,7 @@ class Text_Cleaning:
     return set(paragraph_list)
 
   def find_article_references(self):
-    '''Matcher finding mentions like "article 5", "paragraphs 3 and 7", "No 1338/2008" ''' 
+    '''Matcher finding mentions like "article 5" ''' 
     article_list = []
     # Import the Matcher and initialize it with the shared vocabulary
     matcher = Matcher(self.nlp.vocab)
@@ -59,7 +59,7 @@ class Text_Cleaning:
     return set(article_list)
     
   def find_number_specification_references(self):
-    '''Matcher finding mentions like "article 5", "paragraphs 3 and 7", "No 1338/2008" '''
+    '''Matcher finding mentions like "No 1338/2008" '''
     number_specification_list = []
     # Import the Matcher and initialize it with the shared vocabulary
     matcher = Matcher(self.nlp.vocab)
