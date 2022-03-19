@@ -3,12 +3,12 @@ from spacy.matcher import Matcher
 
 
 class Text_Cleaning:
-  def __init__(self, nlp, signalwords, board_words, company_words, controller_words):
+  def __init__(self, nlp, signalwords, controller_words, data_protection_officer_words, management_words):
     self.nlp = nlp
     self.signalwords = signalwords
-    self.board_words = board_words
-    self.company_words = company_words
     self.controller_words = controller_words
+    self.data_protection_officer_words = data_protection_officer_words
+    self.management_words = management_words
   
   def find_paragraph_references(self):
     '''Matcher finding mentions like "paragraphs 3 and 7" '''
@@ -103,8 +103,8 @@ class Text_Cleaning:
 
 
   def substitude_specific_realization_formulations(self):
-    '''replaces realization specific words (like a company name as "daimler group") with a general term like just "company"
-    or "Chief Officer Corporate Data Protection" with "controller"
+    '''replaces realization specific words with a general term from regulation
+    like "Group Company" with "controller"
     Input: List of Paragraphs
     Output: List of Paragraphs'''
     self.cleaned_paragraphs_list6 = []
@@ -112,13 +112,13 @@ class Text_Cleaning:
     self.cleaned_paragraphs_list8 = []
     for para in self.cleaned_paragraphs_list5:
         new_para = para
-        for item in self.board_words:
-            new_para = new_para.replace(item, 'board')
+        for item in self.management_words:
+            new_para = new_para.replace(item, 'management')
         self.cleaned_paragraphs_list6.append(new_para)
     for para in self.cleaned_paragraphs_list6:
         new_para = para
-        for item in self.company_words:
-            new_para = new_para.replace(item, 'company')
+        for item in self.data_protection_officer_words:
+            new_para = new_para.replace(item, 'data protection officer')
         self.cleaned_paragraphs_list7.append(new_para)
     for para in self.cleaned_paragraphs_list7:
         new_para = para
@@ -162,6 +162,30 @@ class Text_Cleaning:
         for idx, sentence in enumerate(sentences):
             for token in sentence: 
                 if (token.text in self.signalwords):
+                    self.relevant_sentences.append(sentence.text.strip())
+                    break
+    return self.relevant_sentences
+
+
+  def get_relevant_sentences_no_sig_filter(self, cleaned_paragraphs_list):
+    '''creates a list with sentences from all paragaraphs, only keeping those sentences that contain at least one signalword
+    Note: this wasn't already done in the function get_relevant_paragraphs because this way the anaphora resolution can be added
+    Input: List of Paragraphs (as doc objects)
+    Output: List of Sentences'''
+    self.cleaned_paragraphs_list = cleaned_paragraphs_list
+    paragraph_references = self.find_paragraph_references()
+    article_references = self.find_article_references()
+    number_specification_references = self.find_number_specification_references()
+    self.replace_found_references(paragraph_references, article_references, number_specification_references)
+    self.substitude_specific_realization_formulations()
+    self.ensure_word_embeddings()
+    self.relevant_sentences = []
+    for para in self.cleaned_paragraphs_list9:
+        doc = self.nlp(para) 
+        sentences = doc.sents
+        for idx, sentence in enumerate(sentences):
+            for token in sentence: 
+                if (token.text in self.signalwords or token.text not in self.signalwords):
                     self.relevant_sentences.append(sentence.text.strip())
                     break
     return self.relevant_sentences

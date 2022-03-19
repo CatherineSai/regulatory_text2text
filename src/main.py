@@ -2,6 +2,7 @@
 import os
 import spacy
 import pickle
+import pandas as pd
 # own path/ class imports
 from file_paths import *
 from classes.text_cleaning import *
@@ -17,6 +18,7 @@ from classes.deviation_counter import *
 ## Application Selection ########################################START
 direct_s_bert = True #if False --> approach calculated with topic model, kmeans and word2vev 
 iso = False #if False --> running with gdpr setup
+rea_only_signal = False #if False --> gdpr realization input is not filtered to contain only sentences with signalwords
 #thresholds:
 gamma_s_bert = 0.67 #0.67 #used for sentence mapping 
 gamma_grouping = 0.9 #used for sentence mapping in k-means & topic Model approach
@@ -49,9 +51,9 @@ if iso:
   top_management_words = read_defined_lists(ISO_REA_SPEZIFICATION2)
 else:
   signalwords = read_defined_lists(GDPR_SIGNALWORDS)
-  board_words = read_defined_lists(GDPR_REA_SPEZIFICATION1)
-  company_words = read_defined_lists(GDPR_REA_SPEZIFICATION2)
-  controller_words = read_defined_lists(GDPR_REA_SPEZIFICATION3)
+  controller_words = read_defined_lists(GDPR_REA_SPEZIFICATION1)
+  data_protection_officer_words = read_defined_lists(GDPR_REA_SPEZIFICATION2)
+  management_words = read_defined_lists(GDPR_REA_SPEZIFICATION3)
 
 ################################################################# END
 
@@ -67,7 +69,7 @@ else:
     reg_para_anaphora_resolved = pickle.load(fp)
   with open(join(INPUT_DIRECTORY, "gdpr_rea_para_anaphora_resolved.txt"), "rb") as fp: 
     rea_para_anaphora_resolved = pickle.load(fp)
-
+  
 ################################################################# END
 
 ## calling classes ############################################ START
@@ -77,15 +79,16 @@ if iso:
   reg_relevant_sentences = itc.get_relevant_sentences(reg_para_anaphora_resolved)
   rea_relevant_sentences = itc.get_relevant_sentences(rea_para_anaphora_resolved)
 else:
-  tc = Text_Cleaning(nlp, signalwords, board_words, company_words, controller_words)
+  tc = Text_Cleaning(nlp, signalwords, controller_words, data_protection_officer_words, management_words)
   reg_relevant_sentences = tc.get_relevant_sentences(reg_para_anaphora_resolved)
-  rea_relevant_sentences = tc.get_relevant_sentences(rea_para_anaphora_resolved)
-
-'''
-  import pandas as pd
+  if rea_only_signal:
+    rea_relevant_sentences = tc.get_relevant_sentences(rea_para_anaphora_resolved)
+  else:
+    rea_relevant_sentences = tc.get_relevant_sentences_no_sig_filter(rea_para_anaphora_resolved)
+  #save all input constraints before matching for evaluation purposes  
   pd.DataFrame(reg_relevant_sentences).to_excel(join(INTERMEDIATE_DIRECTORY, "gdpr_reg_relevant_sentences.xlsx"))  
   pd.DataFrame(rea_relevant_sentences).to_excel(join(INTERMEDIATE_DIRECTORY, "gdpr_rea_relevant_sentences.xlsx"))  
-'''
+
 
 if direct_s_bert:
   # S-BERT Finding Sentance Pairs 
