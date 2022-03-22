@@ -3,30 +3,7 @@ from sentence_transformers import SentenceTransformer, util, models
 import pandas as pd
 from file_paths import *
 
-"""
-#Legal Bert
-from transformers import AutoTokenizer, AutoModel
-
-tokenizer = AutoTokenizer.from_pretrained("nlpaueb/bert-base-uncased-eurlex")
-model = AutoModel.from_pretrained("nlpaueb/bert-base-uncased-eurlex")
-
-
-# creating new sentences transformer from leagl bert
-# define which BERT to use (here LEGAL BERT)
-word_embedding_model = models.Transformer('nlpaueb/bert-base-uncased-eurlex', max_seq_length=256)
-
-# adding a WordWeights layer to decrease the importance of stopwords in the overall score without deleting them comepletely and thus destroying the semantic context structure
-word_weights_model = models.WordWeights(vocab: List[str], word_weights: Dict[str, float], unknown_word_weight: float = 1)
-
-# pooling needed for fixed-size output representation
-pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
-#creating a new sentence transformer model
-#model = SentenceTransformer(modules=[word_embedding_model, word_weights_model, pooling_model])
-"""
-
-# traning own sentence transformer
-
-
+# using LEGAL BERT Model as basis for sentence transformer
 word_embedding_model = models.Transformer('nlpaueb/bert-base-uncased-eurlex', max_seq_length=256)
 pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
 

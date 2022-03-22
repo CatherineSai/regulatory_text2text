@@ -21,6 +21,7 @@ class S_Bert_Sentence_Pairs:
     cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
     #create df of best score results
     df_sent_pairs = pd.DataFrame(columns=['original_sentence_reg','original_sentence_rea','sbert_sim_score'])
+    '''
     for i in range(len(sentence_list_reg)):
         highest_score = 0
         for j in range(len(sentence_list_rea)):
@@ -31,6 +32,16 @@ class S_Bert_Sentence_Pairs:
         df_sent_pairs.at[i, 'original_sentence_rea'] = sentence_list_rea[best_fit]
         df_sent_pairs.at[i, 'sbert_sim_score'] = highest_score
     df_sent_pairs = df_sent_pairs[df_sent_pairs['sbert_sim_score'] >= self.threshold]
+    return df_sent_pairs
+    '''
+    k = 0
+    for i in range(len(sentence_list_reg)):
+        for j in range(len(sentence_list_rea)):
+            if ((cosine_scores[i][j]) >= self.threshold):
+              df_sent_pairs.at[k, 'original_sentence_reg'] = sentence_list_reg[i]
+              df_sent_pairs.at[k, 'original_sentence_rea'] = sentence_list_rea[j]
+              df_sent_pairs.at[k, 'sbert_sim_score'] = cosine_scores[i][j]
+              k = k+1
     return df_sent_pairs
     
   def get_unmapped_reg_sentences(self, df_sent_pairs, sentence_list_reg):

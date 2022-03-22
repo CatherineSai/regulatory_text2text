@@ -126,7 +126,24 @@ class Text_Cleaning:
             new_para = new_para.replace(item, 'controller')
         self.cleaned_paragraphs_list8.append(new_para)
 
-  def ensure_word_embeddings(self):
+  def ensure_word_embeddings_reg(self):
+    '''just in case a word is not found/substituted which is very specific/special: delete words which are not in spacy vocab 
+    (no word vector available - only very very few like "1338/2008" or "17065/2012" specifing a reference to another regulation/article/paragraph)''' 
+    self.cleaned_paragraphs_list6 = []
+    for para in self.cleaned_paragraphs_list5:
+        doc = self.nlp(para) 
+        words_not_in_spacy_vocab = []
+        for token in doc:
+            if(token.has_vector):
+                continue
+            else:
+                words_not_in_spacy_vocab.append(token.text)
+        new_para = para
+        for no_vec_word in words_not_in_spacy_vocab:
+            new_para = new_para.replace(no_vec_word, "")
+        self.cleaned_paragraphs_list6.append(new_para) 
+
+  def ensure_word_embeddings_rea(self):
     '''just in case a word is not found/substituted which is very specific/special: delete words which are not in spacy vocab 
     (no word vector available - only very very few like "1338/2008" or "17065/2012" specifing a reference to another regulation/article/paragraph)''' 
     self.cleaned_paragraphs_list9 = []
@@ -143,7 +160,29 @@ class Text_Cleaning:
             new_para = new_para.replace(no_vec_word, "")
         self.cleaned_paragraphs_list9.append(new_para) 
 
-  def get_relevant_sentences(self, cleaned_paragraphs_list):
+  def get_relevant_sentences_reg(self, cleaned_paragraphs_list):
+    '''creates a list with sentences from all paragaraphs, only keeping those sentences that contain at least one signalword
+    Note: this wasn't already done in the function get_relevant_paragraphs because this way the anaphora resolution can be added
+    Input: List of Paragraphs (as doc objects)
+    Output: List of Sentences'''
+    self.cleaned_paragraphs_list = cleaned_paragraphs_list
+    paragraph_references = self.find_paragraph_references()
+    article_references = self.find_article_references()
+    number_specification_references = self.find_number_specification_references()
+    self.replace_found_references(paragraph_references, article_references, number_specification_references)
+    self.ensure_word_embeddings_reg()
+    self.relevant_sentences = []
+    for para in self.cleaned_paragraphs_list6:
+        doc = self.nlp(para) 
+        sentences = doc.sents
+        for idx, sentence in enumerate(sentences):
+            for token in sentence: 
+                if (token.text in self.signalwords):
+                    self.relevant_sentences.append(sentence.text.strip())
+                    break
+    return self.relevant_sentences
+
+  def get_relevant_sentences_rea(self, cleaned_paragraphs_list):
     '''creates a list with sentences from all paragaraphs, only keeping those sentences that contain at least one signalword
     Note: this wasn't already done in the function get_relevant_paragraphs because this way the anaphora resolution can be added
     Input: List of Paragraphs (as doc objects)
@@ -154,7 +193,7 @@ class Text_Cleaning:
     number_specification_references = self.find_number_specification_references()
     self.replace_found_references(paragraph_references, article_references, number_specification_references)
     self.substitude_specific_realization_formulations()
-    self.ensure_word_embeddings()
+    self.ensure_word_embeddings_rea()
     self.relevant_sentences = []
     for para in self.cleaned_paragraphs_list9:
         doc = self.nlp(para) 
@@ -165,7 +204,6 @@ class Text_Cleaning:
                     self.relevant_sentences.append(sentence.text.strip())
                     break
     return self.relevant_sentences
-
 
   def get_relevant_sentences_no_sig_filter(self, cleaned_paragraphs_list):
     '''creates a list with sentences from all paragaraphs, only keeping those sentences that contain at least one signalword
@@ -178,14 +216,14 @@ class Text_Cleaning:
     number_specification_references = self.find_number_specification_references()
     self.replace_found_references(paragraph_references, article_references, number_specification_references)
     self.substitude_specific_realization_formulations()
-    self.ensure_word_embeddings()
+    self.ensure_word_embeddings_rea()
     self.relevant_sentences = []
     for para in self.cleaned_paragraphs_list9:
         doc = self.nlp(para) 
         sentences = doc.sents
         for idx, sentence in enumerate(sentences):
             for token in sentence: 
-                if (token.text in self.signalwords or token.text not in self.signalwords):
+                if ((token.text in self.signalwords) or (token.text not in self.signalwords)):
                     self.relevant_sentences.append(sentence.text.strip())
                     break
     return self.relevant_sentences

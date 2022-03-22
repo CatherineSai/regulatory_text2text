@@ -13,14 +13,21 @@ from classes.constraint_existence_check import *
 from classes.in_depth_comparison import *
 from classes.phrase_similarity_computation import *
 from classes.s_bert_sentence_pairs import *
+from classes.legal_s_bert_sentence_pairs import *
 from classes.deviation_counter import *
 
 ## Application Selection ########################################START
-direct_s_bert = True #if False --> approach calculated with topic model, kmeans and word2vev 
+# choose method 
+direct_s_bert = False #if True --> no clustering or other means are implemented, all sentences are comapred with each other via S-Bert
+legal_s_bert = False #if True --> implementation like S-BERT but based on legal BERT instead of BERT
+clustering = False #if True --> 2 approaches calculated: a) topic model + word2vec + cosine sim; b) bert embeddings + kmeans and word2vev + cosine sim
+tfidf = True # if True --> setp one is performed on only key phrases (identified by tfidf), instead of whole sentences
+# choose case study
 iso = False #if False --> running with gdpr setup
+# choose set up
 rea_only_signal = False #if False --> gdpr realization input is not filtered to contain only sentences with signalwords
-#thresholds:
-gamma_s_bert = 0.67 #0.67 #used for sentence mapping 
+# choose thresholds:
+gamma_s_bert = 0.63 #0.67 #used for sentence mapping 
 gamma_grouping = 0.9 #used for sentence mapping in k-means & topic Model approach
 gamma_one = 0.3 #used for subject phrase mapping
 gamma_two = 0.32 #used for verb phrase mapping
@@ -80,9 +87,9 @@ if iso:
   rea_relevant_sentences = itc.get_relevant_sentences(rea_para_anaphora_resolved)
 else:
   tc = Text_Cleaning(nlp, signalwords, controller_words, data_protection_officer_words, management_words)
-  reg_relevant_sentences = tc.get_relevant_sentences(reg_para_anaphora_resolved)
+  reg_relevant_sentences = tc.get_relevant_sentences_reg(reg_para_anaphora_resolved)
   if rea_only_signal:
-    rea_relevant_sentences = tc.get_relevant_sentences(rea_para_anaphora_resolved)
+    rea_relevant_sentences = tc.get_relevant_sentences_rea(rea_para_anaphora_resolved)
   else:
     rea_relevant_sentences = tc.get_relevant_sentences_no_sig_filter(rea_para_anaphora_resolved)
   #save all input constraints before matching for evaluation purposes  
@@ -93,6 +100,32 @@ else:
 if direct_s_bert:
   # S-BERT Finding Sentance Pairs 
   sbsp = S_Bert_Sentence_Pairs(gamma_s_bert)
+  df_bert_sent_pairs = sbsp.get_bert_sim_sent_pairs(reg_relevant_sentences, rea_relevant_sentences)
+  df_bert_sent_pairs.to_excel(join(INTERMEDIATE_DIRECTORY, "df_bert_sent_pairs.xlsx"))  
+  '''
+  count_unmapped_reg_sent = sbsp.get_unmapped_reg_sentences(df_bert_sent_pairs, reg_relevant_sentences)
+  count_unmapped_rea_sent = sbsp.get_unmapped_rea_sentences(df_bert_sent_pairs, rea_relevant_sentences)
+  count_mapped_rea_sent = sbsp.get_mapped_rea_sentences()
+  # Phrase Extraction (splitting the sentences into Sub/Verb/Obj phrases) from each Sentence Pair
+  idc = In_Depth_Comparison(signalwords, nlp)
+  s_bert_constraint_phrases_reg = idc.get_sentence_phrases(df_bert_sent_pairs, 'reg')
+  s_bert_constraint_phrases = idc.get_sentence_phrases(s_bert_constraint_phrases_reg, 'rea')
+  s_bert_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "s_bert_constraint_phrases.xlsx"))  
+  # Similarities for Phrases (calculating similarity between the phrases)
+  psc = Phrase_Similarity_Computation()
+  similarity_s_bert_constraint_phrases = psc.get_phrase_similarities(s_bert_constraint_phrases)
+  similarity_s_bert_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_s_bert_constraint_phrases.xlsx")) 
+  # Result (checking if deviations of different types can be detected)
+  dc = Deviation_Counter(nlp, gamma_one, gamma_two, gamma_three)
+  s_bert_master_results_df = dc.get_deviation_flag(similarity_s_bert_constraint_phrases)
+  s_bert_master_results_df.to_excel(join(RESULT_DIRECTORY, "s_bert_master_results_df.xlsx")) 
+  s_bert_overview_results_df = dc.aggreagte_deviation_count(s_bert_master_results_df, count_unmapped_reg_sent, count_unmapped_rea_sent, count_mapped_rea_sent)
+  s_bert_overview_results_df.to_excel(join(RESULT_DIRECTORY, "s_bert_overview_results_df.xlsx")) 
+  print('Calculations finished.')
+
+elif legal_s_bert:
+  # LEGAL S-BERT Finding Sentence Pairs 
+  sbsp = Legal_S_Bert_Sentence_Pairs(gamma_s_bert)
   df_bert_sent_pairs = sbsp.get_bert_sim_sent_pairs(reg_relevant_sentences, rea_relevant_sentences)
   df_bert_sent_pairs.to_excel(join(INTERMEDIATE_DIRECTORY, "df_bert_sent_pairs.xlsx"))  
   count_unmapped_reg_sent = sbsp.get_unmapped_reg_sentences(df_bert_sent_pairs, reg_relevant_sentences)
@@ -114,7 +147,8 @@ if direct_s_bert:
   s_bert_overview_results_df = dc.aggreagte_deviation_count(s_bert_master_results_df, count_unmapped_reg_sent, count_unmapped_rea_sent, count_mapped_rea_sent)
   s_bert_overview_results_df.to_excel(join(RESULT_DIRECTORY, "s_bert_overview_results_df.xlsx")) 
   print('Calculations finished.')
-else:
+
+elif clustering:
   # Grouping Topic Model
   tm = Topic_Modeling(reg_relevant_sentences, rea_relevant_sentences, nlp)
   df_topic_models = tm.create_topics_dataframe()
@@ -128,6 +162,7 @@ else:
   kmeans_bert_sentence_pairs_df = cec.split_results_by_similarity(cec.kmeans_bert_similarities_df, 'df_kmeans_bert_reg_sent_without_match.xlsx', 'df_kmeans_bert_rea_sent_without_match.xlsx')
   topic_model_sentence_pairs_df.to_excel(join(INTERMEDIATE_DIRECTORY, "topic_model_sentence_pairs_df.xlsx")) 
   kmeans_bert_sentence_pairs_df.to_excel(join(INTERMEDIATE_DIRECTORY, "kmeans_bert_sentence_pairs_df.xlsx")) 
+
   # In depth comparison (on phrase level) of Sentence Pairs (splitting the sentences into Sub/Verb/Obj phrases)
   idc = In_Depth_Comparison(signalwords, nlp)
   topic_model_constraint_phrases_reg = idc.get_sentence_phrases(topic_model_sentence_pairs_df, 'reg')
@@ -140,4 +175,6 @@ else:
   similarity_kmeans_bert_constraint_phrases = psc.get_phrase_similarities(kmeans_bert_constraint_phrases)
   similarity_topic_model_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_topic_model_constraint_phrases.xlsx"))  
   similarity_kmeans_bert_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_kmeans_bert_constraint_phrases.xlsx")) 
-
+else: 
+  print("no method selected")
+'''

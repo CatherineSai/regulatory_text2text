@@ -62,7 +62,7 @@ class Constraint_Existence_Check:
     return result_df
 
   def split_results_by_similarity(self, result_df, filename_no_match_reg, filename_no_match_rea):
-    '''first groups the resuts df into a df with one row per reg_sentence and it's correcponding highest rea sentence match;
+    '''first groups the results df into a df with one row per reg_sentence and it's correcponding highest rea sentence match;
     then splits the resulting df depending similarity value over or under threshold; extracts rea sentences that were not matched above threshold'''
     # group by reg sentences to get one row per reg sentence; per reg sentence keep row with max similarity score 
     res = result_df[result_df['similarity'] == result_df.groupby('original_sentence_reg')['similarity'].transform('max')]
