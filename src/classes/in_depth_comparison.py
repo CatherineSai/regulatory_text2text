@@ -196,10 +196,13 @@ class In_Depth_Comparison:
                 del other_verb_phrases[i]
         except:
             continue
+    ''' 
+    # needs more work - sometimes list index range error  
     # only keep as many other_verb_phrases as signalwords, delete front ones (as they are more likely to overlap with subject phrase)
     for i in range(len(other_verb_phrases)):           
         while len(other_verb_phrases)+1 > self.signalword_count:
             del other_verb_phrases[i]
+    ''' 
     return other_verb_phrases
 
   def get_object_phrase(self, doc):

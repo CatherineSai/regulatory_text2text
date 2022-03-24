@@ -22,6 +22,7 @@ class S_Bert_Sentence_Pairs:
     #create df of best score results
     df_sent_pairs = pd.DataFrame(columns=['original_sentence_reg','original_sentence_rea','sbert_sim_score'])
     '''
+    # returns only best rea match for each reg constraint
     for i in range(len(sentence_list_reg)):
         highest_score = 0
         for j in range(len(sentence_list_rea)):
@@ -34,6 +35,7 @@ class S_Bert_Sentence_Pairs:
     df_sent_pairs = df_sent_pairs[df_sent_pairs['sbert_sim_score'] >= self.threshold]
     return df_sent_pairs
     '''
+    # if you want to extract all matches (not only best match) - execute the following code instead
     k = 0
     for i in range(len(sentence_list_reg)):
         for j in range(len(sentence_list_rea)):

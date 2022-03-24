@@ -6,14 +6,6 @@ and Gibbs Sampling Dirichlet Multinomial Mixture (GSDMM). LDA assumes that each 
 the contribution of each topic to the document. GSDMM, on the other hand, is specifically aimed at detecting topics in smaller documents 
 and assumes only one topic per document.
 --> since we work on sentence level, it can be assumed that there is only one topic per sentence --> GSDMM seems to be the better fit!
-
-HOW DOES IT WORK? (source: https://stackoverflow.com/questions/62108771/a-practical-example-of-gsdmm-in-python)
-You can download the paper A dirichlet multinomial mixture model-based approach for short text clustering, it shows that the clusters 
-search is equivalent to game of table choosing. Imagine to have a group of students and want to group them on tables by their movie interest. 
-Every student (=item) switches in each round to a table(=cluster) that has students with similar movies and is popular. 
-Alpha controls a factor that decides how easily a table gets removed when it's empty (low alpha = less tables). 
-Small betas means that a table is chosen based on similarity to the table than based on popularity of a table. 
-For short text clustering you take words instead of movies.
 '''
 from gsdmm import MovieGroupProcess
 import pandas as pd
