@@ -9,25 +9,26 @@ from classes.text_cleaning import *
 from classes.iso_text_cleaning import *
 from classes.topic_modeling import *
 from classes.k_means_bert import *
+from classes.tfidf import *
 from classes.constraint_existence_check import *
 from classes.in_depth_comparison import *
 from classes.phrase_similarity_computation import *
 from classes.s_bert_sentence_pairs import *
-from classes.legal_s_bert_sentence_pairs import *
+#from classes.legal_s_bert_sentence_pairs import *
 from classes.deviation_counter import *
 
 ## Application Selection ########################################START
 # choose method 
-direct_s_bert = False #if True --> no clustering or other means are implemented, all sentences are comapred with each other via S-Bert
+direct_s_bert = True #if True --> no clustering or other means are implemented, all sentences are comapred with each other via S-Bert
 legal_s_bert = False #if True --> implementation like S-BERT but based on legal BERT instead of BERT
 clustering = False #if True --> 2 approaches calculated: a) topic model + word2vec + cosine sim; b) bert embeddings + kmeans and word2vev + cosine sim
-tfidf = True # if True --> setp one is performed on only key phrases (identified by tfidf), instead of whole sentences
+tfidf = False # if True --> setp one is performed on only key phrases (identified by tfidf), instead of whole sentences
 # choose case study
 iso = False #if False --> running with gdpr setup
 # choose set up
 rea_only_signal = False #if False --> gdpr realization input is not filtered to contain only sentences with signalwords
 # choose thresholds:
-gamma_s_bert = 0.63 #0.67 #used for sentence mapping 
+gamma_s_bert = 0.7583 #0.67 #used for sentence mapping 
 gamma_grouping = 0.9 #used for sentence mapping in k-means & topic Model approach
 gamma_one = 0.3 #used for subject phrase mapping
 gamma_two = 0.32 #used for verb phrase mapping
@@ -102,6 +103,7 @@ if direct_s_bert:
   sbsp = S_Bert_Sentence_Pairs(gamma_s_bert)
   df_bert_sent_pairs = sbsp.get_bert_sim_sent_pairs(reg_relevant_sentences, rea_relevant_sentences)
   df_bert_sent_pairs.to_excel(join(INTERMEDIATE_DIRECTORY, "df_bert_sent_pairs.xlsx"))  
+
   '''
   count_unmapped_reg_sent = sbsp.get_unmapped_reg_sentences(df_bert_sent_pairs, reg_relevant_sentences)
   count_unmapped_rea_sent = sbsp.get_unmapped_rea_sentences(df_bert_sent_pairs, rea_relevant_sentences)
@@ -175,6 +177,11 @@ elif clustering:
   similarity_kmeans_bert_constraint_phrases = psc.get_phrase_similarities(kmeans_bert_constraint_phrases)
   similarity_topic_model_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_topic_model_constraint_phrases.xlsx"))  
   similarity_kmeans_bert_constraint_phrases.to_excel(join(INTERMEDIATE_DIRECTORY, "similarity_kmeans_bert_constraint_phrases.xlsx")) 
-else: 
-  print("no method selected")
+'''
+'''
+elif tfidf: 
+  # Finding Sentance Pairs through tfidf keywords
+  tfidf = TF_IDF()
+  df_keyword_sent_pairs = tfidf.get_keyword_sim_sent_pairs(reg_relevant_sentences, rea_relevant_sentences)
+  df_keyword_sent_pairs.to_excel(join(INTERMEDIATE_DIRECTORY, "tfidf_keyword_sent_pairs.xlsx"))  
 '''
