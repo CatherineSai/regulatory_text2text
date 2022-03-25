@@ -25,12 +25,16 @@ df_gs_enhanced["AP"] = 1/df_gs_enhanced["rank"]
 # cleaning
 df_gs_enhanced = df_gs_enhanced.fillna(0)
 
+# sum rank for rank 1-4 
+df_rank4 = df_sb.loc[(df_sb['rank'] >= 1) & (df_sb['rank'] <= 4)]
+df_gs_enhanced["method_rank_4"] = len(df_rank4. index)
+# sum rank for rank 1
+df_rank1 = df_sb.loc[df_sb['rank'] == 1]
+df_gs_enhanced["method_rank_1"] = len(df_rank1. index)
 # mean average precision (MAP)
 df_gs_enhanced["MAP"] = df_gs_enhanced["AP"].mean()
-print("MAP:", df_gs_enhanced["AP"].mean())
 # count number gs rank within 4
 df_gs_enhanced["No_rank_within_4"] = df_gs_enhanced["rank"][(df_gs_enhanced["rank"] > 0) & (df_gs_enhanced["rank"] < 5)].count()
-print("Rank within 4:", df_gs_enhanced["rank"][(df_gs_enhanced["rank"] > 0) & (df_gs_enhanced["rank"] < 5)].count())
 
 #save to excel  
 pd.DataFrame(df_gs_enhanced).to_excel(join(RESULT_DIRECTORY, "goldstandard_evaluation.xlsx"))  
