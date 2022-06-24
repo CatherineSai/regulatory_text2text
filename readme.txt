@@ -12,7 +12,7 @@ Setup
 
 3. install spacy en_core_web_lg pipeline (https://spacy.io/usage)
 
-4. in a seperate project folder and environment install https://github.com/CatherineSai/text2textPreProcessing 
+4. in a seperate project folder and environment install https://anonymous.4open.science/r/text2textPreProcessing-105D 
    This script is necessary for the anaphora resolution (as part of preprocessing), as the chosen algorithm (neuralcoref) is not compatible with Python3.9 and Spacy 3.x. 
    --> run: pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz
                 and https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-2.1.0/en_core_web_lg-2.1.0.tar.gz to get the correct old version needed
